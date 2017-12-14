@@ -1,6 +1,5 @@
 package com.jk.modules.sys.shiro.filter;
 
-import com.feilong.core.DatePattern;
 import com.jk.common.Constant;
 import com.jk.common.DataResult;
 import com.jk.common.ExecStatus;
@@ -57,7 +56,7 @@ public class LoginFilter extends AccessControlFilter {
             //当tc为空时，询问是否踢出，否则放行KickoutSessionControlFilter会进行拦截进行踢出操作
             if(WebUtil.isAjaxRequest(request) &&  StrUtil.isEmpty(tc)){
                 LoginSession loginSession = deque.peekLast();
-                DataResult result = new DataResult(ExecStatus.KICK_OUT_ASK.getCode(), StrUtil.format(ExecStatus.KICK_OUT_ASK.getMsg(), loginSession.getLoginIP(), DateUtil.format(loginSession.getLoginTime(), DatePattern.CHINESE_COMMON_DATE_AND_TIME)));
+                DataResult result = new DataResult(ExecStatus.KICK_OUT_ASK.getCode(), StrUtil.format(ExecStatus.KICK_OUT_ASK.getMsg(), loginSession.getLoginIP(), DateUtil.format(loginSession.getLoginTime(), "yyyy年MM月dd日 HH:mm:ss")));
                 WebUtil.writeJson(response, result, HttpServletResponse.SC_UNAUTHORIZED);
                 return false;
             }

@@ -1,9 +1,9 @@
 package com.jk.modules.sys.shiro.filter;
 
-import com.feilong.core.util.CollectionsUtil;
 import com.jk.common.util.EhCacheUtils;
 import com.jk.common.util.ShiroUtils;
 import com.jk.modules.sys.vo.LoginSession;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.session.SessionException;
 import org.apache.shiro.subject.Subject;
@@ -50,7 +50,8 @@ public class SystemLogoutFilter extends LogoutFilter{
                 EhCacheUtils.put("shiro-kickout-session", username, deque);
             }
 
-            LoginSession loginSession = CollectionsUtil.find(deque, "sessionId", sessionId);
+            LoginSession loginSession = deque.stream().filter(e->(e.getSessionId().equals(sessionId))).collect(
+                Collectors.toList()).get(0);
             deque.remove(loginSession);
             //更新缓存
             EhCacheUtils.put("shiro-kickout-session", username, deque);

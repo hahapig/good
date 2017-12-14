@@ -1,6 +1,5 @@
 package com.jk.modules.sys.shiro.filter;
 
-import com.feilong.core.util.CollectionsUtil;
 import com.jk.common.DataResult;
 import com.jk.common.ExecStatus;
 import com.jk.common.util.ShiroUtils;
@@ -114,7 +113,7 @@ public class KickoutSessionControlFilter extends AccessControlFilter {
 
 
         //如果队列里没有此sessionId，且用户没有被踢出；放入队列
-        if(CollectionsUtil.find(deque, "sessionId", sessionId) == null && session.getAttribute("kickout") == null) {
+        if(!deque.stream().anyMatch(e->(e.getSessionId().equals(sessionId))) && session.getAttribute("kickout") == null) {
             //将sessionId存入队列
             LoginSession loginSession = new LoginSession();
             loginSession.setSessionId(sessionId);
