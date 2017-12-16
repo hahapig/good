@@ -1,0 +1,78 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{admin/common/common}">
+<head>
+	<title>添加接口</title>
+</head>
+<body layout:fragment="content">
+<article class="page-container">
+	<form class="form form-horizontal" id="form-admin-add" >
+		<div class="row cl">
+			<label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>接口名：</label>
+			<div class="formControls col-xs-8 col-sm-9">
+				<input type="text" class="input-text" value="" placeholder="" id="apiName" th:name="apiName"/>
+			</div>
+		</div>
+		<div class="row cl">
+			<label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>请求方法：</label>
+			<div class="formControls col-xs-8 col-sm-9">
+				<input type="text" class="input-text" autocomplete="off" value="" placeholder="目前只能有GET" id="method" th:name="method"/>
+			</div>
+		</div>
+		<div class="row cl">
+			<label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>请求参数：</label>
+			<div class="formControls col-xs-8 col-sm-9">
+				<input type="text" class="input-text" autocomplete="off"  placeholder="多个参数用逗号隔开" id="paramNames" th:name="paramNames"/>
+			</div>
+		</div>
+
+		<div class="row cl">
+			<label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>必填参数：</label>
+			<div class="formControls col-xs-8 col-sm-9">
+				<input type="text" class="input-text" autocomplete="off"  placeholder="多个参数用逗号隔开" id="checkedParams" th:name="checkedParams"/>
+			</div>
+		</div>
+		<div class="row cl">
+			<label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>安全校验：</label>
+			<div class="formControls col-xs-8 col-sm-9 skin-minimal">
+				<div class="radio-box">
+					<input type="radio" id="sex-1" checked="checked" th:name="securityCheck" th:checked="*{securityCheck}"/>
+					<label for="sex-1">开启</label>
+				</div>
+				<div class="radio-box">
+					<input type="radio" id="sex-2" checked="checked" name="securityCheck" th:name="securityCheck" th:value="0" th:checked="true"/>
+					<label for="sex-2">关闭</label>
+				</div>
+			</div>
+		</div>
+		<div class="row cl">
+			<label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>依赖接口：</label>
+			<div class="formControls col-xs-8 col-sm-9">
+				<input type="text" class="input-text" value="" placeholder="目前没有使用" id="dependency" name="dependency" th:name="dependency" />
+			</div>
+		</div>
+		<div class="row cl">
+			<label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>邮箱：</label>
+			<div class="formControls col-xs-8 col-sm-9">
+				<input type="text" class="input-text" placeholder="请求路径" name="requestPath" id="requestPath" th:name="requestPath"/>
+			</div>
+		</div>
+		<!--<div class="row cl">-->
+		<!--<label class="form-label col-xs-4 col-sm-3">备注：</label>-->
+		<!--<div class="formControls col-xs-8 col-sm-9">-->
+			<!--<textarea name="" cols="" rows="" class="textarea"  placeholder="说点什么...100个字符以内" dragonfly="true" onKeyUp="textarealength(this,100)"></textarea>-->
+			<!--<p class="textarea-numberbar"><em class="textarea-length">0</em>/100</p>-->
+		<!--</div>-->
+	<!--</div>-->
+	<div class="row cl">
+		<div class="col-xs-8 col-sm-9 col-xs-offset-4 col-sm-offset-3">
+			<input class="btn btn-primary radius" type="submit" value="&nbsp;&nbsp;提交&nbsp;&nbsp;"/>
+		</div>
+	</div>
+	</form>
+</article>
+
+<script type="text/javascript" th:src="@{/js/admin/cibinproxy/api-add.js}"></script>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/common/common}">
+<head>
+    <title>接口列表</title>
+</head>
+
+<body layout:fragment="content">
+<nav class="breadcrumb">
+    <i class="Hui-iconfont">&#xe67f;</i>
+    首页
+    <span class="c-gray en">&gt;</span>内容管理 <span class="c-gray en">&gt;</span>
+    CIBIN接口代理
+    <a class="btn btn-success radius r" style="line-height:1.6em;margin-top:3px" href="javascript:location.replace(location.href);" title="刷新" >
+        <i class="Hui-iconfont">&#xe68f;</i>
+    </a>
+</nav>
+<form id="myForm" th:action="@{/admin/cibinproxy/api}" th:method="get">
+    <div class="page-container">
+
+        <div class="cl pd-5 bg-1 bk-gray mt-20">
+            <span class="l">
+                <!--<a href="javascript:;" onclick="datadel()" class="btn btn-danger radius"><i class="Hui-iconfont">&#xe6e2;</i> 批量删除</a>-->
+                <a href="javascript:;" th:onclick="'javascript:admin_add(\'添加CIBIN接口\',\'/admin/cibinproxy/api/add\',\'800\',\'500\');'" class="btn btn-primary radius"><i class="Hui-iconfont">&#xe600;</i> 添加CIBIN接口</a>
+            </span>
+            <span class="r">共有数据：<strong th:text="${pageInfo?.total}" id="total">54</strong> 条</span>
+        </div>
+        <table class="table table-border table-bordered table-bg table-hover">
+            <thead>
+            <tr>
+                <th scope="col" colspan="10">接口列表</th>
+            </tr>
+            <tr class="text-c">
+                <!--<th width="25"><input type="checkbox" name="" value=""/></th>-->
+                <th>接口名称</th>
+                <th>访问方法</th>
+                <th>参数列表</th>
+                <th>必须参数</th>
+                <th>安全检查(未启用)</th>
+                <th>依赖接口</th>
+                <th>请求路径</th>
+                <th>创建时间</th>
+                <th>修改时间</th>
+
+                <th width="100">操作</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr class="text-c" th:each="model:${pageInfo?.list}" th:object="${model}">
+                <!--<td><input type="checkbox" value="2" name=""/></td>-->
+                <td th:text="*{apiName}">d</td>
+                <td th:text="*{method}">2</td>
+                <td th:text="*{paramNames}">3</td>
+                <td th:text="*{checkedParams}"></td>
+                <td class="td-status">
+                    <span class="label radius" th:if="*{securityCheck}">已启用</span>
+                    <span class="label radius label-success" th:unless="*{securityCheck}">已停用</span>
+                </td>
+                <td th:text="*{dependency}"></td>
+                <td th:text="*{requestPath}"></td>
+                <!--<td th:text="*{#dates.format(createTime, 'yyyy-MM-dd HH:mm')}">2014-6-11 11:11:42</td>-->
+                <td th:text="*{#dates.format(modifyTime, 'yyyy-MM-dd HH:mm')}">2014-6-11 11:11:42</td>
+                <td class="td-manage">
+                    <a title="编辑" href="javascript:;" th:onclick="'javascript:admin_edit(\'API编辑\',\'/admin/cibinproxy/api/edit/'+*{id}+'\',\'800\',\'500\');'" class="ml-5" style="text-decoration:none"><i class="Hui-iconfont">&#xe6df;</i></a>
+                    <a title="删除" href="javascript:;" th:onclick="'javascript:admin_del(this, \'/admin/cibinproxy/api/'+*{id}+'\');'" class="ml-5" style="text-decoration:none"><i class="Hui-iconfont">&#xe6e2;</i></a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <div th:replace="admin/common/page :: page"></div>
+    </div>
+</form>
+
+<script type="text/javascript" th:src="@{/js/common/page.js}"></script>
+<script type="text/javascript" th:src="@{/js/admin/cibinproxy/api-list.js}"></script>
+<script th:inline="javascript">
+
+</script>
+</body>
+</html>
