@@ -15,6 +15,9 @@ public class BaseController {
 
     protected final transient String API_URL = "http://localhost/api/v1";
 
+    protected final String MESSAGE_NAME = "msg";
+    protected final String CODE_NAME = "code";
+
     /**
      * 默认页为1
      */
