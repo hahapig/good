@@ -1,5 +1,6 @@
 package com.jk.config.filter;
 
+import com.jk.common.security.xss.LogSeqFilter;
 import com.jk.common.security.xss.XssFilter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -62,6 +63,21 @@ public class FilterConfig {
         registration.setFilter(new XssFilter());
         registration.addUrlPatterns("/*");
         registration.setName("xssFilter");
+        registration.setOrder(Integer.MAX_VALUE);
+        return registration;
+    }
+
+    /**
+     * 注入Xss过滤器
+     * @return
+     */
+    @Bean
+    public FilterRegistrationBean logSeqFilterRegistration() {
+        FilterRegistrationBean registration = new FilterRegistrationBean();
+        registration.setDispatcherTypes(DispatcherType.REQUEST);
+        registration.setFilter(new LogSeqFilter());
+        registration.addUrlPatterns("/*");
+        registration.setName("logSeqFilter");
         registration.setOrder(Integer.MAX_VALUE);
         return registration;
     }
