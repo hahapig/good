@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class CibinProxyExportController extends BaseController {
 
-  private static final String CONFIG_ERROR = "5000";
+  private static final String CONFIG_ERROR = "500";
 
   private static final String SEPARATOR = ",";
 
@@ -29,7 +29,7 @@ public class CibinProxyExportController extends BaseController {
 
   @PostMapping(value = "/api/{apiName}")
   @ResponseBody
-  public Map index(@RequestBody Map<String, String> paramMap,
+  public Object proxyAPI(@RequestBody Map<String, String> paramMap,
       @PathVariable("apiName") String apiName) {
     CibinApi cibinApi = new CibinApi();
     cibinApi.setMethod(null);
@@ -57,11 +57,11 @@ public class CibinProxyExportController extends BaseController {
     }
     // do real request
     Map<String, String> preparedParam = extractCibinParam(paramMap, cibinApis);
-
-    return result;
+    return cibinProxyApiManagerService.requestRemote(preparedParam, cibinApi);
   }
 
   private boolean checkSign(Map<String, String> paramMap) {
+    // 验证签名，待协商
     return true;
   }
 
