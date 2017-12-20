@@ -1,9 +1,13 @@
 #公共配置
+# 客户端验证 加解密配置
 
 # cibin服务器地址
 cibinproxy:
   host: wwww.baidu.com
+  channelId: xxxxx
 server:
+  tomcat:
+    max-threads: 500
   #端口号
   port: 8080
   context-path: /

@@ -1,13 +1,23 @@
 package com.jk.modules.api;
 
 import com.google.common.collect.Maps;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.jk.common.util.HttpRequestUtil;
 import com.jk.modules.cbinproxy.model.CibinApi;
+import com.jk.modules.cbinproxy.model.CibinProxyLog;
 import com.jk.modules.cbinproxy.service.CibinProxyApiManagerService;
+import com.jk.modules.cbinproxy.service.CibinProxyConstant;
+import com.jk.modules.cbinproxy.service.CibinProxyLogService;
 import java.util.Map;
-import java.util.TreeMap;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import javax.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.net.URLCodec;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,6 +30,9 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class CibinProxyExportController extends BaseController {
 
+  private static Executor executor = Executors
+      .newFixedThreadPool(5, new CustomizableThreadFactory("cibinprox-log"));
+
   private static final String CONFIG_ERROR = "500";
 
   private static final String SEPARATOR = ",";
@@ -27,10 +40,13 @@ public class CibinProxyExportController extends BaseController {
   @Autowired
   private CibinProxyApiManagerService cibinProxyApiManagerService;
 
+  @Autowired
+  private CibinProxyLogService cibinProxyLogService;
+
   @PostMapping(value = "/api/{apiName}")
   @ResponseBody
   public Object proxyAPI(@RequestBody Map<String, String> paramMap,
-      @PathVariable("apiName") String apiName) {
+      @PathVariable("apiName") String apiName, HttpServletRequest request) {
     CibinApi cibinApi = new CibinApi();
     cibinApi.setMethod(null);
     cibinApi.setApiName(apiName);
@@ -57,10 +73,52 @@ public class CibinProxyExportController extends BaseController {
     }
     // do real request
     Map<String, String> preparedParam = extractCibinParam(paramMap, cibinApis);
-    return cibinProxyApiManagerService.requestRemote(preparedParam, cibinApi);
+
+    try {
+      JsonObject jsonObject = cibinProxyApiManagerService.requestRemote(preparedParam, cibinApi);
+      if (!CibinProxyConstant.SUCCESS_CODE
+          .equalsIgnoreCase(jsonObject.get(CibinProxyConstant.RESPONSE_CODE_NAME).getAsString())) {
+        CibinProxyLog log = buildLog(apiName, paramMap, request, jsonObject);
+        executor.execute(() -> {
+          cibinProxyLogService.save(log);
+        });
+      }
+      return jsonObject;
+    } catch (Exception e) {
+      CibinProxyLog log = buildLog(apiName, paramMap, request, null);
+      log.setExceptionStackTrace(ExceptionUtils.getStackTrace(e));
+      executor.execute(() -> {
+        cibinProxyLogService.save(log);
+      });
+      throw e;
+    }
+  }
+
+  private CibinProxyLog buildLog(String apiName, Map<String, String> requestParam,
+      HttpServletRequest request, JsonObject response) {
+    String ip = HttpRequestUtil.ipAddress(request);
+    String userAgent = HttpRequestUtil.getUserAgent(request);
+    String deviceId = request.getHeader("device-id");
+    ;
+    CibinProxyLog log = new CibinProxyLog();
+    log.setClientIdentity(deviceId);
+    if (response != null) {
+      log.setErrorCode(response.get(CibinProxyConstant.RESPONSE_CODE_NAME).getAsString());
+      log.setResponse(response.toString());
+    }
+    log.setRequestIp(ip);
+    log.setRequestParam(new Gson().toJson(requestParam));
+    log.setRequestUrl(HttpRequestUtil.extractRequestUrl(request));
+    log.setUserAgent(userAgent);
+    log.setTraceId(MDC.get("seq"));
+    log.setApiName(apiName);
+    return log;
   }
 
   private boolean checkSign(Map<String, String> paramMap) {
+    if (!paramMap.containsKey("sign")) {
+      return false;
+    }
     // 验证签名，待协商
     return true;
   }

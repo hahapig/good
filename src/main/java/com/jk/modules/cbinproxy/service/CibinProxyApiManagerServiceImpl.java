@@ -2,6 +2,7 @@ package com.jk.modules.cbinproxy.service;
 
 import static com.jk.modules.cbinproxy.service.CibinProxyConstant.COMMON_PARAM_CHANNEL;
 import static com.jk.modules.cbinproxy.service.CibinProxyConstant.COMMON_PARAM_TIME;
+import static com.jk.modules.cbinproxy.service.CibinProxyConstant.EXPIRATION_AHEAD;
 import static com.jk.modules.cbinproxy.service.CibinProxyConstant.REMOTE_API_ERROR;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
@@ -17,7 +18,8 @@ import com.jk.modules.cbinproxy.model.CibinApi;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import lombok.Data;
+import java.util.concurrent.TimeUnit;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.EncoderException;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -42,10 +44,10 @@ public class CibinProxyApiManagerServiceImpl extends BaseServiceImpl<CibinApi> i
   @Autowired
   private RestTemplate restTemplate;
 
-  @Value("${cibinHost}")
+  @Value("${cibinproxy.host}")
   private String cibinHost;
 
-  @Value("${cibinChannelId}")
+  @Value("${cibinproxy.channelId}")
   private String cibinChannelId;
 
   public PageInfo<CibinApi> findPage(Integer pageNum, Integer pageSize) throws Exception {
@@ -57,6 +59,16 @@ public class CibinProxyApiManagerServiceImpl extends BaseServiceImpl<CibinApi> i
 
   @Override
   public JsonObject requestRemote(Map<String, String> preparedParam, CibinApi cibinApi) {
+    JsonObject jsonObject = doRequestRemote(preparedParam, cibinApi);
+    if ( CibinProxyConstant.SECRET_OUTAGE_CODE.equalsIgnoreCase(jsonObject.get(CibinProxyConstant.RESPONSE_CODE_NAME).getAsString())) {
+      log.warn("secret outage.reset secret.retry ....");
+      cibinSecret = null;
+      jsonObject = doRequestRemote(preparedParam, cibinApi);
+    }
+    return jsonObject;
+  }
+
+  private JsonObject doRequestRemote(Map<String, String> preparedParam, CibinApi cibinApi) {
     // 1.获取secret
     String secret = null;
     if (cibinSecret != null && !cibinSecret.isExpire()) {
@@ -129,14 +141,28 @@ public class CibinProxyApiManagerServiceImpl extends BaseServiceImpl<CibinApi> i
     return url.toString().endsWith("/") ? url.toString().substring(0, url.length() -1) : url.toString();
   }
 
-  @Data
+  @ToString
   static class CibinSecret {
-
     private String secret;
     private long expiration;
 
+    public long getExpiration() {
+      return expiration;
+    }
+
+    public void setExpiration(long expiration) {
+      this.expiration = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(expiration) - EXPIRATION_AHEAD;
+    }
+
+    public String getSecret() {
+      return secret;
+    }
+
+    public void setSecret(String secret) {
+      this.secret = secret;
+    }
+
     public boolean isExpire() {
-      // TODO 确认下这个判断是否是正确的
       return System.currentTimeMillis() > expiration;
     }
   }
