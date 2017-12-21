@@ -4,17 +4,21 @@ import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.jk.common.util.HttpRequestUtil;
+import com.jk.common.util.RSACryptography;
 import com.jk.modules.cbinproxy.model.CibinApi;
 import com.jk.modules.cbinproxy.model.CibinProxyLog;
 import com.jk.modules.cbinproxy.service.CibinProxyApiManagerService;
 import com.jk.modules.cbinproxy.service.CibinProxyConstant;
 import com.jk.modules.cbinproxy.service.CibinProxyLogService;
+
+import java.util.Base64;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import javax.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
@@ -47,6 +51,8 @@ public class CibinProxyExportController extends BaseController {
   @ResponseBody
   public Object proxyAPI(@RequestBody Map<String, String> paramMap,
       @PathVariable("apiName") String apiName, HttpServletRequest request) {
+    StopWatch stopWatch = new StopWatch();
+    stopWatch.start();
     CibinApi cibinApi = new CibinApi();
     cibinApi.setMethod(null);
     cibinApi.setApiName(apiName);
@@ -78,14 +84,14 @@ public class CibinProxyExportController extends BaseController {
       JsonObject jsonObject = cibinProxyApiManagerService.requestRemote(preparedParam, cibinApi);
       if (!CibinProxyConstant.SUCCESS_CODE
           .equalsIgnoreCase(jsonObject.get(CibinProxyConstant.RESPONSE_CODE_NAME).getAsString())) {
-        CibinProxyLog log = buildLog(apiName, paramMap, request, jsonObject);
+        CibinProxyLog log = buildLog(apiName, paramMap, request, jsonObject, stopWatch);
         executor.execute(() -> {
           cibinProxyLogService.save(log);
         });
       }
       return jsonObject;
     } catch (Exception e) {
-      CibinProxyLog log = buildLog(apiName, paramMap, request, null);
+      CibinProxyLog log = buildLog(apiName, paramMap, request, null, stopWatch);
       log.setExceptionStackTrace(ExceptionUtils.getStackTrace(e));
       executor.execute(() -> {
         cibinProxyLogService.save(log);
@@ -95,11 +101,11 @@ public class CibinProxyExportController extends BaseController {
   }
 
   private CibinProxyLog buildLog(String apiName, Map<String, String> requestParam,
-      HttpServletRequest request, JsonObject response) {
+      HttpServletRequest request, JsonObject response, StopWatch stopWatch) {
     String ip = HttpRequestUtil.ipAddress(request);
     String userAgent = HttpRequestUtil.getUserAgent(request);
     String deviceId = request.getHeader("device-id");
-    ;
+
     CibinProxyLog log = new CibinProxyLog();
     log.setClientIdentity(deviceId);
     if (response != null) {
@@ -112,11 +118,19 @@ public class CibinProxyExportController extends BaseController {
     log.setUserAgent(userAgent);
     log.setTraceId(MDC.get("seq"));
     log.setApiName(apiName);
+    stopWatch.stop();
+    log.setTimeConsuming(stopWatch.getTime());
     return log;
   }
 
   private boolean checkSign(Map<String, String> paramMap) {
     if (!paramMap.containsKey("sign")) {
+      return false;
+    }
+    try {
+      RSACryptography.decrypt(Base64.getUrlDecoder().decode(paramMap.get("sign")), RSACryptography.privateKey);
+    } catch (Exception e) {
+      log.warn("can not decrypt sign . paramMap=" + paramMap, e);
       return false;
     }
     // 验证签名，待协商
