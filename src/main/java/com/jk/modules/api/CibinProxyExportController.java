@@ -41,6 +41,8 @@ public class CibinProxyExportController extends BaseController {
 
   private static final String SEPARATOR = ",";
 
+  private static final Boolean SIGN_CHECK = Boolean.FALSE;
+
   @Autowired
   private CibinProxyApiManagerService cibinProxyApiManagerService;
 
@@ -124,6 +126,9 @@ public class CibinProxyExportController extends BaseController {
   }
 
   private boolean checkSign(Map<String, String> paramMap) {
+    if (SIGN_CHECK == Boolean.FALSE) {
+      return true;
+    }
     if (!paramMap.containsKey("sign")) {
       return false;
     }
