@@ -123,7 +123,7 @@ spring:
 #日志
 logging:
   config: classpath:logback-jk.xml
-  path: D:\\log
+  path: logs
 
 #数据库密码加密
 #java -cp druid-1.1.0.jar com.alibaba.druid.filter.config.ConfigTools 你的密码
