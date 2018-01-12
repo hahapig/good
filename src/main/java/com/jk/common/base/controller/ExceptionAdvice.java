@@ -55,7 +55,7 @@ public class ExceptionAdvice {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<DataResult> handleAllException(Exception ex) {
         log.error(ex.getMessage(), ex);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new DataResult(ExecStatus.FAIL.getCode(), "系统繁忙，请稍后重试！"));
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new DataResult(ExecStatus.FAIL.getCode(), ex.getMessage()));
     }
 
     /**

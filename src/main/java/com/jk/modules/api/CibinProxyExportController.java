@@ -22,15 +22,10 @@ import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  */
-@RestController("export/cibinproxy")
 @Slf4j
 public class CibinProxyExportController extends BaseController {
 
@@ -49,7 +44,7 @@ public class CibinProxyExportController extends BaseController {
   @Autowired
   private CibinProxyLogService cibinProxyLogService;
 
-  @PostMapping(value = "/api/{apiName}")
+  @RequestMapping(value = "/cibinprox/{apiName}", method = {RequestMethod.POST, RequestMethod.GET})
   @ResponseBody
   public Object proxyAPI(@RequestBody Map<String, String> paramMap,
       @PathVariable("apiName") String apiName, HttpServletRequest request) {
