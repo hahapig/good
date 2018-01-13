@@ -22,11 +22,13 @@ import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 /**
  */
 @Slf4j
+@Controller
 public class CibinProxyExportController extends BaseController {
 
   private static Executor executor = Executors
@@ -89,7 +91,7 @@ public class CibinProxyExportController extends BaseController {
       return jsonObject;
     } catch (Exception e) {
       CibinProxyLog log = buildLog(apiName, paramMap, request, null, stopWatch);
-      log.setExceptionStackTrace(ExceptionUtils.getStackTrace(e));
+      log.setExceptionStackTrace(ExceptionUtils.getMessage(e));
       executor.execute(() -> {
         cibinProxyLogService.save(log);
       });

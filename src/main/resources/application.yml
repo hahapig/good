@@ -3,7 +3,7 @@
 
 # cibin服务器地址
 cibinproxy:
-  host: wwww.baidu.com
+  host: https://www.baidu.com
   channelId: xxxxx
 server:
   tomcat:
